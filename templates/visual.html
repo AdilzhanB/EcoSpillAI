@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualization</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(120deg, #1e3c72, #2a5298, #6dd5ed, #c0fdfb);
+      background-size: 300% 300%;
+      animation: gradient-bg 10s ease infinite;
+      color: #fff;
+    }
+
+    @keyframes gradient-bg {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .left-box {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.1);
+      border-right: 2px solid rgba(255, 255, 255, 0.3);
+      overflow: hidden;
+    }
+
+    .left-box img {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .left-box img:hover {
+      transform: scale(1.05);
+    }
+
+    .fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .fullscreen img {
+      max-width: 200%;
+      max-height: 200%;
+      border-radius: 10px;
+      transform: scale(2.5);
+      cursor: zoom-out;
+    }
+
+    .right-box {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .field {
+      font-size: 18px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px 15px;
+      border-radius: 8px;
+      width: 100%;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .submit-button {
+      margin-top: 20px;
+      align-self: center;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background: #6dd5ed;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .submit-button:hover {
+      background: #2a5298;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left-box">
+      {% if image_path %}
+      <img id="imgML" src="{{image_path }}" alt="Generated Image">
+      {% else %}
+          <p>Image not found</p>
+      {% endif %}
+  </div>
+    <div class="right-box">
+        <div id="temperature" class="field">Температура: </div>
+        <div id="humidity" class="field">Влажность: </div>
+        <div id="flow" class="field">Течение: </div>
+        <div id="result" class="field">Результат: </div>
+        <button class="submit-button" onclick="handleSubmit()">Submit</button>
+    </div>
+</div>
+<div id="fullscreen" class="fullscreen" style="display: none;">
+    <img src="" alt="Fullscreen Image" onclick="closeFullscreen()">
+</div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const imgML = document.getElementById("imgML");
+      const fullscreenDiv = document.getElementById("fullscreen");
+      const fullscreenImg = fullscreenDiv.querySelector("img");
+
+      imgML.addEventListener("click", () => {
+        fullscreenImg.src = imgML.src;
+        fullscreenDiv.style.display = "flex";
+      });
+    });
+
+    function closeFullscreen() {
+      const fullscreenDiv = document.getElementById("fullscreen");
+      fullscreenDiv.style.display = "none";
+    }
+
+    const tempValue = "25°C";
+    const humidityValue = "65%";
+    const flowValue = "10 м/с в северном направлении";
+    const resultValue = "Механическая очистка";
+
+    async function handleSubmit() {
+      document.getElementById("temperature").textContent = `Температура: ${tempValue}`;
+      document.getElementById("humidity").textContent = `Влажность: ${humidityValue}`;
+      document.getElementById("flow").textContent = `Течение: ${flowValue}`;
+      document.getElementById("result").textContent = `Результат: ${resultValue}`;
+    }
+  </script>
+</body>
+</html>
