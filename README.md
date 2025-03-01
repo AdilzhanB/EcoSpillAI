@@ -58,7 +58,7 @@
 ## 🤝 Авторы
 
 - **@Danchouvzv**
-- **@AdilchanB**
+- **@AdilzhanB**
 
 ---
 
