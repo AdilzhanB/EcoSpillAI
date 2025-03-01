@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visualization</title>
+  <title>Oil Spill Cleaning Method Predictor</title>
   <style>
     body {
       margin: 0;
@@ -35,6 +35,7 @@
       background: rgba(255, 255, 255, 0.1);
       border-right: 2px solid rgba(255, 255, 255, 0.3);
       overflow: hidden;
+      height: 100%;
     }
 
     .left-box img {
@@ -63,10 +64,9 @@
     }
 
     .fullscreen img {
-      max-width: 200%;
-      max-height: 200%;
+      max-width: 90%;
+      max-height: 90%;
       border-radius: 10px;
-      transform: scale(2.5);
       cursor: zoom-out;
     }
 
@@ -78,6 +78,17 @@
       justify-content: flex-start;
       align-items: flex-start;
       gap: 20px;
+      height: 100%;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .input-form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: all 0.5s ease;
     }
 
     .field {
@@ -85,9 +96,26 @@
       background: rgba(255, 255, 255, 0.2);
       padding: 10px 15px;
       border-radius: 8px;
-      width: 100%;
+      width: calc(100% - 30px);
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       backdrop-filter: blur(10px);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 4px;
+      border: none;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      font-size: 16px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
     }
 
     .submit-button {
@@ -106,30 +134,115 @@
     .submit-button:hover {
       background: #2a5298;
     }
+
+    .result-container {
+      width: 100%;
+      font-size: 18px;
+      background: rgba(255, 255, 255, 0.3);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      display: none;
+      overflow-y: auto;
+      max-height: 90vh;
+      transition: all 0.5s ease;
+    }
+
+    .result-container h3 {
+      margin-top: 0;
+      color: #fff;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+      padding-bottom: 10px;
+    }
+
+    .loader {
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top: 5px solid #6dd5ed;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .back-button {
+      margin-top: 20px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.3);
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .back-button:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="left-box">
       {% if image_path %}
-      <img id="imgML" src="{{image_path }}" alt="Generated Image">
+      <img id="imgML" src="{{ image_path }}" alt="Oil Spill Image">
       {% else %}
-          <p>Image not found</p>
+      <img id="imgML" src="/api/placeholder/400/320" alt="Oil Spill Visualization">
       {% endif %}
-  </div>
-    <div class="right-box">
-        <div id="temperature" class="field">Температура: </div>
-        <div id="humidity" class="field">Влажность: </div>
-        <div id="flow" class="field">Течение: </div>
-        <div id="result" class="field">Результат: </div>
-        <button class="submit-button" onclick="handleSubmit()">Submit</button>
     </div>
-</div>
-<div id="fullscreen" class="fullscreen" style="display: none;">
+    <div class="right-box">
+      <div class="input-form" id="input-form">
+        <div class="field">
+          <label for="temperature">Temperature:</label>
+          <input type="number" id="temperature" placeholder="Enter temperature in °C" min="-50" max="50" step="0.1" required>
+        </div>
+        <div class="field">
+          <label for="humidity">Humidity (%):</label>
+          <input type="number" id="humidity" placeholder="Enter humidity percentage" min="0" max="100" step="1" required>
+        </div>
+        <div class="field">
+          <label for="flow-speed">Flow Speed (m/s):</label>
+          <input type="number" id="flow-speed" placeholder="Enter flow speed" min="0" max="50" step="0.1" required>
+        </div>
+        <div class="field">
+          <label for="flow-direction">Flow Direction:</label>
+          <select id="flow-direction" required>
+            <option value="">Select direction</option>
+            <option value="North">North</option>
+            <option value="Northeast">Northeast</option>
+            <option value="East">East</option>
+            <option value="Southeast">Southeast</option>
+            <option value="South">South</option>
+            <option value="Southwest">Southwest</option>
+            <option value="West">West</option>
+            <option value="Northwest">Northwest</option>
+          </select>
+        </div>
+        <button class="submit-button" id="submit-button" onclick="predictCleaningMethod()">Predict Cleaning Method</button>
+      </div>
+      
+      <div class="loader" id="loader"></div>
+      <div class="result-container" id="result-container">
+        <h3>Predicted Cleaning Method</h3>
+        <p id="result-text"></p>
+        <div id="result-details"></div>
+        <button class="back-button" id="back-button" onclick="goBack()">Back to Input Form</button>
+      </div>
+    </div>
+  </div>
+  <div id="fullscreen" class="fullscreen" style="display: none;">
     <img src="" alt="Fullscreen Image" onclick="closeFullscreen()">
-</div>
-
+  </div>
+  
   <script>
+    // Setup fullscreen image viewer
     document.addEventListener("DOMContentLoaded", () => {
       const imgML = document.getElementById("imgML");
       const fullscreenDiv = document.getElementById("fullscreen");
@@ -142,20 +255,84 @@
     });
 
     function closeFullscreen() {
-      const fullscreenDiv = document.getElementById("fullscreen");
-      fullscreenDiv.style.display = "none";
+      document.getElementById("fullscreen").style.display = "none";
     }
-
-    const tempValue = "25°C";
-    const humidityValue = "65%";
-    const flowValue = "10 м/с в северном направлении";
-    const resultValue = "Механическая очистка";
-
-    async function handleSubmit() {
-      document.getElementById("temperature").textContent = `Температура: ${tempValue}`;
-      document.getElementById("humidity").textContent = `Влажность: ${humidityValue}`;
-      document.getElementById("flow").textContent = `Течение: ${flowValue}`;
-      document.getElementById("result").textContent = `Результат: ${resultValue}`;
+    
+    function goBack() {
+      document.getElementById("result-container").style.display = "none";
+      document.getElementById("input-form").style.display = "flex";
+    }
+    
+    async function predictCleaningMethod() {
+      const temperature = document.getElementById("temperature").value;
+      const humidity = document.getElementById("humidity").value;
+      const flowSpeed = document.getElementById("flow-speed").value;
+      const flowDirection = document.getElementById("flow-direction").value;
+      
+      if (!temperature || !humidity || !flowSpeed || !flowDirection) {
+        alert("Please fill in all fields");
+        return;
+      }
+      
+      const loader = document.getElementById("loader");
+      const resultContainer = document.getElementById("result-container");
+      const submitButton = document.getElementById("submit-button");
+      const inputForm = document.getElementById("input-form");
+      
+      loader.style.display = "block";
+      inputForm.style.display = "none";
+      submitButton.disabled = true;
+    
+      const url = new URL("/generate_oil_spill_clean_method", window.location.origin);
+      url.searchParams.append("temperature", temperature);
+      url.searchParams.append("humidity", humidity);
+      url.searchParams.append("flow_speed", flowSpeed);
+      url.searchParams.append("flow_direction", flowDirection);
+    
+      try {
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        
+        const data = await response.json();
+        
+        // Format the result text with proper markdown/html formatting
+        let formattedText = data;
+        
+        // Convert simple markdown to HTML
+        formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        formattedText = formattedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        formattedText = formattedText.replace(/\n\n/g, '<br><br>');
+        
+        document.getElementById("result-text").innerHTML = formattedText;
+        resultContainer.style.display = "block";
+        
+        // Add parameter summary to result details
+        const resultDetails = document.getElementById("result-details");
+        resultDetails.innerHTML = `
+          <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.3);">
+            <h4>Input Parameters:</h4>
+            <ul>
+              <li>Temperature: ${temperature}°C</li>
+              <li>Humidity: ${humidity}%</li>
+              <li>Flow Speed: ${flowSpeed} m/s</li>
+              <li>Flow Direction: ${flowDirection}</li>
+            </ul>
+          </div>
+        `;
+        
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+        inputForm.style.display = "flex";
+      } finally {
+        loader.style.display = "none";
+        submitButton.disabled = false;
+      }
     }
   </script>
 </body>

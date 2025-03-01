@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <style>
+        :root {
+            --primary-color: #5a46e4;
+            --primary-light: #7d6eeb;
+            --secondary-color: #f3f4f6;
+            --text-dark: #333;
+            --text-light: #fff;
+            --accent-color: #ffcb47;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --radius: 20px;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .chat-container {
+            width: 85%;
+            height: 90vh;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        .chat-container:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .chat-header {
+            background: var(--primary-color);
+            color: var(--text-light);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .chat-header::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.05), transparent);
+            z-index: 5;
+        }
+        
+        .chat-header img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .chat-header h3 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        
+        .user-status {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .chat-messages {
+            flex-grow: 1;
+            padding: 25px;
+            overflow-y: auto;
+            background: var(--secondary-color);
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+        }
+        
+        .message-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+            max-width: 75%;
+        }
+        
+        .message-group.sent {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+        
+        .message-group.received {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+        
+        .message {
+            padding: 12px 18px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            margin-bottom: 3px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.3s ease-out forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.sent {
+            background: var(--primary-color);
+            color: var(--text-light);
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message.received {
+            background: white;
+            color: var(--text-dark);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-time {
+            font-size: 0.7rem;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            padding: 12px 18px;
+            border-radius: 18px;
+            background: white;
+            align-self: flex-start;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+            display: none;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 1px;
+            animation: typingAnimation 1.5s infinite ease-in-out;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typingAnimation {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 15px 20px;
+            background: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            z-index: 10;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .chat-input::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: linear-gradient(to top, rgba(0,0,0,0.05), transparent);
+            z-index: -1;
+        }
+        
+        .chat-input-wrapper {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            background: var(--secondary-color);
+            border-radius: 30px;
+            padding: 0 15px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .chat-input-wrapper:focus-within {
+            box-shadow: 0 0 0 2px rgba(90, 70, 228, 0.3);
+            border-color: var(--primary-light);
+        }
+        
+        .emoji-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.2rem;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 10px;
+        }
+        
+        .emoji-btn:hover {
+            color: var(--primary-color);
+        }
+        
+        .chat-input input {
+            flex-grow: 1;
+            border: none;
+            padding: 12px;
+            background: transparent;
+            outline: none;
+            font-size: 0.95rem;
+        }
+        
+        .send-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-left: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 10px rgba(90, 70, 228, 0.4);
+        }
+        
+        .send-btn:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(90, 70, 228, 0.5);
+        }
+        
+        .send-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(90, 70, 228, 0.5);
+        }
+        
+        .send-btn i {
+            font-size: 1.2rem;
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .back-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(-3px);
+        }
+        
+        /* Media queries for responsiveness */
+        @media (max-width: 768px) {
+            .chat-container {
+                width: 95%;
+                height: 95vh;
+            }
+            
+            .message-group {
+                max-width: 85%;
+            }
+        }
+
+        /* Day theme */
+        .theme-day {
+            --primary-color: #5a46e4;
+            --primary-light: #7d6eeb;
+            --secondary-color: #f3f4f6;
+            --text-dark: #333;
+            --text-light: #fff;
+        }
+
+        /* Updated Night Theme CSS */
+.theme-night {
+    --primary-color: #7c5cff;
+    --primary-light: #9173ff;
+    --secondary-color: #2a2a3d;
+    --text-dark: #e9e9e9;
+    --text-light: #fff;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    --message-received-bg: #3a3a4e;
+    --message-sent-bg: #6747e6;
+    --input-bg: #222232;
+    --input-text: #e9e9e9;
+    --input-placeholder: #999;
+    --header-border: #3a3a4e;
+    --scrollbar-thumb: #444458;
+}
+
+body.dark-mode {
+    background: linear-gradient(135deg, #1a1a2e, #301b50);
+}
+
+/* Update these styles to work with the theme class */
+.theme-night .chat-container {
+    background: rgba(30, 30, 46, 0.95);
+    box-shadow: var(--shadow);
+}
+
+.theme-night .chat-header {
+    background: #252538;
+    border-bottom: 1px solid var(--header-border);
+}
+
+.theme-night .chat-messages {
+    background: var(--secondary-color);
+}
+
+.theme-night .message.received {
+    background: var(--message-received-bg);
+    color: var(--text-light);
+}
+
+.theme-night .chat-input {
+    background: #252538;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.theme-night .chat-input-wrapper {
+    background: var(--input-bg);
+    border: 1px solid #3a3a4e;
+}
+
+.theme-night .chat-input-wrapper:focus-within {
+    box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.3);
+    border-color: #4a4a6a;
+}
+
+.theme-night .emoji-btn {
+    color: #999;
+}
+
+.theme-night .emoji-btn:hover {
+    color: var(--primary-color);
+}
+
+.theme-night .chat-input input {
+    color: var(--input-text);
+}
+
+.theme-night .chat-input input::placeholder {
+    color: var(--input-placeholder);
+}
+
+.theme-night .chat-messages::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+}
+
+.theme-night .typing-indicator {
+    background: var(--message-received-bg);
+}
+
+.theme-night .typing-indicator span {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.theme-night .message-time {
+    color: rgba(255, 255, 255, 0.7);
+}
+.theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 1.2rem;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(30deg);
+        }
+        /* Add these styles to your existing CSS */
+.emoji-picker {
+    position: absolute;
+    bottom: 75px;
+    left: 15px;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    width: 280px;
+    display: none;
+    z-index: 100;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.emoji-picker.active {
+    display: block;
+    animation: fadeInUp 0.3s forwards;
+}
+
+.emoji-picker-content {
+    padding: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.emoji-picker-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.emoji-picker-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.emoji-picker-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+}
+
+.emoji-category {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.emoji-category:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.emoji-item {
+    font-size: 1.4rem;
+    padding: 6px;
+    cursor: pointer;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.emoji-item:hover {
+    background: var(--secondary-color);
+    transform: scale(1.1);
+}
+
+/* Dark theme specific styles */
+.theme-night .emoji-picker {
+    background: #252538;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+}
+
+.theme-night .emoji-category {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.theme-night .emoji-item:hover {
+    background: #3a3a4e;
+}
+
+.theme-night .emoji-picker-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Add a small triangle pointer to the emoji picker */
+.emoji-picker::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid white;
+}
+
+.theme-night .emoji-picker::after {
+    border-top-color: #252538;
+}
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="window.location.href='https://humble-doodle-v6q79vv4q7gv2wvvq-5000.app.github.dev/base.html';">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+    
+    <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </button>
+    
+    <div class="chat-container">
+        <div class="chat-header">
+            <img src="{{ recipient_data.avatar }}" alt="Avatar">
+            <div>
+                <h3>{{ recipient_data.email }}</h3>
+                <div class="user-status">
+                    <span class="status-dot"></span>
+                    <span>Online</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be loaded here -->
+            <div class="typing-indicator" id="typingIndicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="chat-input">
+            <div class="chat-input-wrapper">
+                <button class="emoji-btn">
+                    <i class="far fa-smile"></i>
+                    <!-- Add this HTML right after your chat-input div (outside of it) -->
+<div class="emoji-picker" id="emojiPicker">
+    <div class="emoji-picker-content">
+        <div class="emoji-category">
+            <span class="emoji-item" data-emoji="😊">😊</span>
+            <span class="emoji-item" data-emoji="😂">😂</span>
+            <span class="emoji-item" data-emoji="🥰">🥰</span>
+            <span class="emoji-item" data-emoji="😍">😍</span>
+            <span class="emoji-item" data-emoji="😎">😎</span>
+            <span class="emoji-item" data-emoji="🤔">🤔</span>
+            <span class="emoji-item" data-emoji="😉">😉</span>
+            <span class="emoji-item" data-emoji="😆">😆</span>
+        </div>
+        <div class="emoji-category">
+            <span class="emoji-item" data-emoji="👍">👍</span>
+            <span class="emoji-item" data-emoji="❤️">❤️</span>
+            <span class="emoji-item" data-emoji="🙌">🙌</span>
+            <span class="emoji-item" data-emoji="🎉">🎉</span>
+            <span class="emoji-item" data-emoji="🔥">🔥</span>
+            <span class="emoji-item" data-emoji="👏">👏</span>
+            <span class="emoji-item" data-emoji="💯">💯</span>
+            <span class="emoji-item" data-emoji="✨">✨</span>
+        </div>
+        <div class="emoji-category">
+            <span class="emoji-item" data-emoji="😭">😭</span>
+            <span class="emoji-item" data-emoji="😢">😢</span>
+            <span class="emoji-item" data-emoji="😤">😤</span>
+            <span class="emoji-item" data-emoji="😠">😠</span>
+            <span class="emoji-item" data-emoji="🙄">🙄</span>
+            <span class="emoji-item" data-emoji="😬">😬</span>
+            <span class="emoji-item" data-emoji="😱">😱</span>
+            <span class="emoji-item" data-emoji="😴">😴</span>
+        </div>
+    </div>
+</div>
+                </button>
+                <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+            </div>
+            <button class="send-btn" id="sendButton" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const sender = "{{ sender }}";
+        const recipient = "{{ recipient }}";
+        const socket = io();
+        let typingTimeout;
+        let isTyping = false;
+        let themeMode = 'day';
+
+        // Join chat room
+        socket.emit("join_chat", {recipient: sender});
+
+        function formatTime() {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function createMessageGroup(isUser, messages) {
+            const group = document.createElement("div");
+            group.classList.add("message-group", isUser ? "sent" : "received");
+            
+            messages.forEach((msg, index) => {
+                const messageEl = document.createElement("div");
+                messageEl.classList.add("message", isUser ? "sent" : "received");
+                messageEl.textContent = msg.content;
+                
+                // Add animation delay based on position
+                messageEl.style.animationDelay = `${index * 0.1}s`;
+                
+                group.appendChild(messageEl);
+                
+                // Only add time to the last message in group
+                if (index === messages.length - 1) {
+                    const timeEl = document.createElement("div");
+                    timeEl.classList.add("message-time");
+                    // Use message time if available, otherwise current time
+                    timeEl.textContent = msg.time || formatTime();
+                    group.appendChild(timeEl);
+                }
+            });
+            
+            return group;
+        }
+
+        function loadMessages() {
+    fetch(`/get_messages/${sender}/${recipient}`)
+        .then(response => response.json())
+        .then(messages => {
+            // Sort messages by timestamp (oldest first)
+            messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            const chatBox = document.getElementById("chatMessages");
+            chatBox.innerHTML = "";
+            
+            // Add typing indicator (hidden initially)
+            const typingIndicator = document.createElement("div");
+            typingIndicator.id = "typingIndicator";
+            typingIndicator.classList.add("typing-indicator");
+            typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+            chatBox.appendChild(typingIndicator);
+            
+            // Group messages by sender and proximity in time
+            let currentSender = null;
+            let currentGroup = [];
+            let groups = [];
+            
+            messages.forEach((msg, index) => {
+                if (currentSender !== msg.sender || 
+                    (index > 0 && new Date(msg.timestamp) - new Date(messages[index-1].timestamp) > 60000)) {
+                    if (currentGroup.length > 0) {
+                        groups.push({
+                            sender: currentSender,
+                            messages: [...currentGroup]
+                        });
+                        currentGroup = [];
+                    }
+                    currentSender = msg.sender;
+                }
+                currentGroup.push(msg);
+                
+                // Handle the last message
+                if (index === messages.length - 1 && currentGroup.length > 0) {
+                    groups.push({
+                        sender: currentSender,
+                        messages: [...currentGroup]
+                    });
+                }
+            });
+            
+            // Render message groups with staggered animations
+            groups.forEach((group, groupIndex) => {
+                const isUser = group.sender === sender;
+                const messageGroup = createMessageGroup(isUser, group.messages);
+                chatBox.insertBefore(messageGroup, typingIndicator);
+            });
+            
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+        }
+        
+        function sendMessage() {
+    const messageInput = document.getElementById("messageInput");
+    const message = messageInput.value.trim();
+    if (!message) return;
+
+    // Cancel typing indicator
+    clearTimeout(typingTimeout);
+    socket.emit("stop_typing", { sender, recipient });
+    isTyping = false;
+
+    // Get current timestamp for consistency
+    const currentTime = new Date();
+    const formattedTime = formatTime();
+
+    // Append message immediately
+    const chatBox = document.getElementById("chatMessages");
+    
+    // Create new message group for sent message
+    const messageGroup = createMessageGroup(true, [{
+        content: message,
+        time: formattedTime,
+        timestamp: currentTime
+    }]);
+    
+    // Insert before typing indicator to maintain order
+    const typingIndicator = document.getElementById("typingIndicator");
+    chatBox.insertBefore(messageGroup, typingIndicator);
+    
+    // Animate send button
+    const sendBtn = document.getElementById("sendButton");
+    sendBtn.classList.add("animate__animated", "animate__bounceIn");
+    setTimeout(() => {
+        sendBtn.classList.remove("animate__animated", "animate__bounceIn");
+    }, 500);
+    
+    chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
+
+    // Send to backend with timestamp
+    fetch("/send_message", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ 
+            sender, 
+            recipient, 
+            content: message,
+            timestamp: currentTime.toISOString() 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            socket.emit("send_message", { 
+                sender, 
+                recipient, 
+                content: message,
+                timestamp: currentTime.toISOString() 
+            });
+        }
+    })
+    .catch(error => console.error("Error sending message:", error));
+
+    messageInput.value = ""; // Clear input
+}
+
+
+socket.on("receive_message", function(data) {
+    if (data.sender === recipient) {
+        // Hide typing indicator when actual message arrives
+        const typingIndicator = document.getElementById("typingIndicator");
+        typingIndicator.style.display = "none";
+        
+        const chatBox = document.getElementById("chatMessages");
+        
+        // Use the timestamp from the server if available, or current time
+        const messageTime = data.timestamp ? new Date(data.timestamp) : new Date();
+        const formattedTime = formatTime(messageTime);
+        
+        // Create message group for received message
+        const messageGroup = createMessageGroup(false, [{
+            content: data.content,
+            time: formattedTime,
+            timestamp: messageTime
+        }]);
+        
+        // Insert before typing indicator
+        chatBox.insertBefore(messageGroup, typingIndicator);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+});
+
+// Update formatTime to accept a date parameter
+function formatTime(date = new Date()) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+        // Handle typing indicator
+        socket.on("user_typing", function(data) {
+            if (data.sender === recipient) {
+                const typingIndicator = document.getElementById("typingIndicator");
+                typingIndicator.style.display = "flex";
+                const chatBox = document.getElementById("chatMessages");
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        });
+        
+        socket.on("user_stop_typing", function(data) {
+            if (data.sender === recipient) {
+                const typingIndicator = document.getElementById("typingIndicator");
+                typingIndicator.style.display = "none";
+            }
+        });
+        
+        // Typing detection
+        document.getElementById("messageInput").addEventListener("input", function(e) {
+            if (!isTyping) {
+                socket.emit("typing", { sender, recipient });
+                isTyping = true;
+            }
+            
+            clearTimeout(typingTimeout);
+            
+            typingTimeout = setTimeout(() => {
+                socket.emit("stop_typing", { sender, recipient });
+                isTyping = false;
+            }, 2000);
+        });
+        
+        // Handle Enter key
+        document.getElementById("messageInput").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                sendMessage();
+            }
+        });
+        
+        // Replace your existing theme toggle event listener with this updated version
+document.getElementById("themeToggle").addEventListener("click", function() {
+    const body = document.body;
+    const themeIcon = this.querySelector("i");
+    
+    if (themeMode === 'day') {
+        // Switch to dark mode
+        body.classList.add('dark-mode');
+        document.documentElement.classList.add('theme-night');
+        document.documentElement.classList.remove('theme-day');
+        themeIcon.classList.remove("fa-moon");
+        themeIcon.classList.add("fa-sun");
+        themeMode = 'night';
+        
+        // Save user preference
+        localStorage.setItem('chatTheme', 'night');
+    } else {
+        // Switch to light mode
+        body.classList.remove('dark-mode');
+        document.documentElement.classList.add('theme-day');
+        document.documentElement.classList.remove('theme-night');
+        themeIcon.classList.remove("fa-sun");
+        themeIcon.classList.add("fa-moon");
+        themeMode = 'day';
+        
+        // Save user preference
+        localStorage.setItem('chatTheme', 'day');
+    }
+});
+
+// Add this code to check for saved theme preference on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('chatTheme');
+    if (savedTheme === 'night') {
+        // Trigger dark mode
+        document.getElementById("themeToggle").click();
+    }
+});
+// Add this code to your existing script section
+
+// Set up emoji functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the emoji button reference using the exact structure in your HTML
+    const emojiBtn = document.querySelector('.chat-input-wrapper .emoji-btn');
+    const emojiPicker = document.getElementById('emojiPicker');
+    const messageInput = document.getElementById('messageInput');
+    
+    // Toggle emoji picker when clicking the button
+    emojiBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation(); // Prevent event from bubbling
+        emojiPicker.classList.toggle('active');
+        
+        // Add a subtle highlight to the button when picker is active
+        if (emojiPicker.classList.contains('active')) {
+            emojiBtn.style.color = 'var(--primary-color)';
+        } else {
+            emojiBtn.style.color = '';
+        }
+    });
+    
+    // Close emoji picker when clicking elsewhere
+    document.addEventListener('click', function(e) {
+        if (!emojiPicker.contains(e.target) && e.target !== emojiBtn && !emojiBtn.contains(e.target)) {
+            emojiPicker.classList.remove('active');
+            emojiBtn.style.color = '';
+        }
+    });
+    
+    // Handle emoji selection
+    document.querySelectorAll('.emoji-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const emoji = this.getAttribute('data-emoji');
+            
+            // Get current cursor position
+            const cursorPos = messageInput.selectionStart;
+            const textBefore = messageInput.value.substring(0, cursorPos);
+            const textAfter = messageInput.value.substring(cursorPos);
+            
+            // Insert emoji at cursor position
+            messageInput.value = textBefore + emoji + textAfter;
+            
+            // Move cursor after inserted emoji
+            messageInput.selectionStart = cursorPos + emoji.length;
+            messageInput.selectionEnd = cursorPos + emoji.length;
+            
+            // Focus back on input
+            messageInput.focus();
+            
+            // Add typing indicator
+            if (!isTyping) {
+                socket.emit("typing", { sender, recipient });
+                isTyping = true;
+            }
+            
+            clearTimeout(typingTimeout);
+            
+            typingTimeout = setTimeout(() => {
+                socket.emit("stop_typing", { sender, recipient });
+                isTyping = false;
+            }, 2000);
+            
+            // Close picker
+            emojiPicker.classList.remove('active');
+            emojiBtn.style.color = '';
+        });
+    });
+    
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && emojiPicker.classList.contains('active')) {
+            emojiPicker.classList.remove('active');
+            emojiBtn.style.color = '';
+        }
+    });
+});
+        loadMessages();
+    </script>
+</body>
+</html>
