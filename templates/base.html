@@ -617,7 +617,9 @@
             posts.forEach(post => {
                 // Store original content for reference
                 const originalContent = post.content;
-                
+                const likeIconClass = post.is_liked_by_user ? 'bi-heart-fill' : 'bi-heart';
+                const likeButtonData = post.is_liked_by_user ? 'true' : 'false';
+
                 html += `
                     <div class="card post-card p-3 my-4 animate-on-scroll" 
                          data-post-id="${post.id}" 
@@ -727,13 +729,11 @@
                                 })}
                             </div>
                             <div class="post-actions">
-                                <button class="btn btn-sm btn-link text-decoration-none p-0 me-3 like-btn">
-                                    <i class="bi bi-heart"></i>
-                                    <span class="ms-1">0</span>
-                                </button>
-                                <button class="btn btn-sm btn-link text-decoration-none p-0 comment-btn">
-                                    <i class="bi bi-chat-left-text"></i>
-                                    <span class="ms-1">0</span>
+                                <button class="btn btn-sm btn-link text-decoration-none p-0 me-3 like-btn"
+                                        data-post-id="${post.id}"
+                                        data-liked="${likeButtonData}">
+                                    <i class="bi ${likeIconClass}"></i>
+                                    <span class="ms-1 like-count">${post.like_count || 0}</span>
                                 </button>
                             </div>
                         </footer>
@@ -746,6 +746,7 @@
             // Initialize translation behavior
             initializeTranslation();
             
+            initializeLikeButtons();
             // Apply scroll animations
             animateOnScroll();
             
@@ -771,6 +772,76 @@
                 </div>
             `;
         });
+}
+
+function initializeLikeButtons() {
+    const likeButtons = document.querySelectorAll('.like-btn');
+    
+    likeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const postId = this.getAttribute('data-post-id');
+            const isLiked = this.getAttribute('data-liked') === 'true';
+            const likeIcon = this.querySelector('i');
+            const likeCount = this.querySelector('.like-count');
+            
+            // Determine which endpoint to call based on current like status
+            const endpoint = isLiked ? `/unlike/${postId}` : `/like/${postId}`;
+            
+            // Add visual feedback immediately
+            if (isLiked) {
+                likeIcon.classList.add('animate__animated', 'animate__bounceOut');
+                setTimeout(() => {
+                    likeIcon.classList.remove('bi-heart-fill', 'animate__animated', 'animate__bounceOut');
+                    likeIcon.classList.add('bi-heart');
+                }, 300);
+            } else {
+                likeIcon.classList.add('animate__animated', 'animate__heartBeat');
+                setTimeout(() => {
+                    likeIcon.classList.remove('bi-heart', 'animate__animated', 'animate__heartBeat');
+                    likeIcon.classList.add('bi-heart-fill');
+                }, 300);
+            }
+            
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin' // Send cookies with the request
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // If response is not 2xx, parse the error message
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Error processing like/unlike');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update like count from server response
+                    likeCount.textContent = data.like_count;
+                    
+                    // Toggle like state attribute
+                    this.setAttribute('data-liked', isLiked ? 'false' : 'true');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Revert the icon state if there was an error
+                if (isLiked) {
+                    likeIcon.classList.remove('bi-heart');
+                    likeIcon.classList.add('bi-heart-fill');
+                } else {
+                    likeIcon.classList.remove('bi-heart-fill');
+                    likeIcon.classList.add('bi-heart');
+                }
+            });
+        });
+    });
 }
 
 function enhanceUIInteractions() {

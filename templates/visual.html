@@ -4,14 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Oil Spill Cleaning Method Predictor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
+    :root {
+      --primary-color: #1e3c72;
+      --secondary-color: #2a5298;
+      --accent-color: #6dd5ed;
+      --light-color: #c0fdfb;
+      --dark-color: #12263f;
+      --text-color: #ffffff;
+      --card-bg: rgba(255, 255, 255, 0.15);
+      --card-hover: rgba(255, 255, 255, 0.25);
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(120deg, #1e3c72, #2a5298, #6dd5ed, #c0fdfb);
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color), var(--light-color));
       background-size: 300% 300%;
-      animation: gradient-bg 10s ease infinite;
-      color: #fff;
+      animation: gradient-bg 15s ease infinite;
+      color: var(--text-color);
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
     @keyframes gradient-bg {
@@ -22,65 +43,265 @@
 
     .container {
       display: flex;
-      height: 100vh;
-      align-items: center;
-      justify-content: center;
+      min-height: 100vh;
+      align-items: stretch;
+      position: relative;
     }
 
     .left-box {
       flex: 1;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(255, 255, 255, 0.1);
-      border-right: 2px solid rgba(255, 255, 255, 0.3);
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 40px;
+      position: relative;
       overflow: hidden;
+    }
+
+    .image-container {
+      position: relative;
+      width: 100%;
       height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
     }
 
-    .left-box img {
-      max-width: 100%;
-      max-height: 100%;
-      border-radius: 10px;
+    .image-controls {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 5;
+    }
+
+    .image-control-btn {
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      transition: transform 0.3s;
+      transition: var(--transition);
+      backdrop-filter: blur(5px);
     }
 
-    .left-box img:hover {
+    .image-control-btn:hover {
+      background: rgba(0, 0, 0, 0.7);
+      transform: translateY(-2px);
+    }
+
+    .image-gallery {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent-color) rgba(0, 0, 0, 0.2);
+      transform: translateY(100%);
+      transition: var(--transition);
+    }
+
+    .image-gallery.active {
+      transform: translateY(0);
+    }
+
+    .gallery-item {
+      width: 80px;
+      height: 60px;
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: var(--transition);
+    }
+
+    .gallery-item.active {
+      border-color: var(--accent-color);
+      transform: scale(1.1);
+    }
+
+    .gallery-item:hover {
       transform: scale(1.05);
     }
 
-    .fullscreen {
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .main-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .main-image:hover {
+      transform: scale(1.02);
+    }
+
+    .image-caption {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 14px;
+      max-width: 70%;
+      backdrop-filter: blur(5px);
+      transition: var(--transition);
+      opacity: 0.8;
+    }
+
+    .image-container:hover .image-caption {
+      opacity: 1;
+    }
+
+    .fullscreen-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.9);
       display: flex;
       justify-content: center;
       align-items: center;
       z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
     }
 
-    .fullscreen img {
-      max-width: 90%;
-      max-height: 90%;
+    .fullscreen-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .fullscreen-content {
+      position: relative;
+      width: 90%;
+      height: 90%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .fullscreen-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
       border-radius: 10px;
-      cursor: zoom-out;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .fullscreen-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      z-index: 1001;
+    }
+
+    .fullscreen-control {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: white;
+      font-size: 18px;
+      transition: var(--transition);
+    }
+
+    .fullscreen-control:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+
+    .fullscreen-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      color: white;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+      transition: var(--transition);
+    }
+
+    .fullscreen-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(90deg);
+    }
+
+    .zoom-level {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: white;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 14px;
     }
 
     .right-box {
       flex: 1;
-      padding: 20px;
+      padding: 40px;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
       align-items: flex-start;
-      gap: 20px;
-      height: 100%;
+      gap: 30px;
       overflow-y: auto;
       position: relative;
+    }
+
+    .app-title {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: white;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     }
 
     .input-form {
@@ -88,131 +309,341 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
-      transition: all 0.5s ease;
+      transition: var(--transition);
     }
 
     .field {
-      font-size: 18px;
-      background: rgba(255, 255, 255, 0.2);
-      padding: 10px 15px;
-      border-radius: 8px;
-      width: calc(100% - 30px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 15px;
+      width: 100%;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       backdrop-filter: blur(10px);
+      transition: var(--transition);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .field:hover {
+      background: var(--card-hover);
+      transform: translateY(-2px);
     }
 
     input, select {
       width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border-radius: 4px;
-      border: none;
+      padding: 12px 15px;
+      margin-top: 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
       background: rgba(255, 255, 255, 0.9);
-      color: #333;
+      color: var(--dark-color);
       font-size: 16px;
+      transition: var(--transition);
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px rgba(109, 213, 237, 0.2);
     }
 
     label {
-      font-weight: bold;
+      font-weight: 600;
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 16px;
     }
 
     .submit-button {
-      margin-top: 20px;
+      margin-top: 30px;
       align-self: center;
-      padding: 10px 20px;
+      padding: 15px 30px;
       border: none;
-      border-radius: 5px;
-      background: #6dd5ed;
-      color: #fff;
+      border-radius: 50px;
+      background: var(--accent-color);
+      color: var(--dark-color);
       font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
-      transition: 0.3s;
+      transition: var(--transition);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .submit-button:hover {
-      background: #2a5298;
+      background: #8be0f0;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
     }
 
     .result-container {
       width: 100%;
-      font-size: 18px;
-      background: rgba(255, 255, 255, 0.3);
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      font-size: 16px;
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: var(--shadow);
       display: none;
       overflow-y: auto;
       max-height: 90vh;
-      transition: all 0.5s ease;
+      transition: var(--transition);
+      animation: fadeIn 0.5s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .result-container h3 {
       margin-top: 0;
-      color: #fff;
-      border-bottom: 2px solid rgba(255, 255, 255, 0.5);
-      padding-bottom: 10px;
+      margin-bottom: 20px;
+      color: white;
+      font-size: 24px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+      padding-bottom: 15px;
+    }
+
+    .result-text {
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .result-details {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .result-details h4 {
+      margin-bottom: 15px;
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .result-details ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    .result-details li {
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .result-details li i {
+      color: var(--accent-color);
+      font-size: 14px;
     }
 
     .loader {
-      border: 5px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top: 5px solid #6dd5ed;
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
       display: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      position: relative;
+      margin: 30px auto;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
+    .loader:after, .loader:before {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .loader:before {
+      box-shadow: 0 0 0 3px var(--accent-color) inset;
+    }
+
+    .loader:after {
+      background-image: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.5));
+      animation: rotate 1s linear infinite;
+    }
+
+    @keyframes rotate {
+      0% { transform: rotate(0); }
       100% { transform: rotate(360deg); }
     }
 
     .back-button {
-      margin-top: 20px;
-      padding: 8px 16px;
+      margin-top: 25px;
+      padding: 12px 25px;
       border: none;
-      border-radius: 5px;
-      background: rgba(255, 255, 255, 0.3);
-      color: #fff;
-      font-size: 14px;
+      border-radius: 50px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 16px;
       cursor: pointer;
-      transition: 0.3s;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .back-button:hover {
-      background: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Responsive design */
+    @media (max-width: 992px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .left-box, .right-box {
+        width: 100%;
+      }
+
+      .left-box {
+        height: 40vh;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .image-caption {
+        max-width: 90%;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .left-box, .right-box {
+        padding: 20px;
+      }
+
+      .image-controls {
+        bottom: 10px;
+        right: 10px;
+      }
+
+      .field {
+        padding: 15px;
+      }
+
+      .submit-button, .back-button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+    .back-home-button {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
+    
+    .back-home-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .back-home-button svg {
+      width: 16px;
+      height: 16px;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="left-box">
-      {% if image_path %}
-      <img id="imgML" src="{{ image_path }}" alt="Oil Spill Image">
-      {% else %}
-      <img id="imgML" src="/api/placeholder/400/320" alt="Oil Spill Visualization">
-      {% endif %}
+      <div class="image-container">
+        <div class="image-caption">Oil Spill Analysis Image</div>
+        <img id="mainImage" class="main-image" src="{{ image_path|default('/api/placeholder/800/600') }}" alt="Oil Spill Image">
+        
+        <div class="image-controls">
+          <button class="image-control-btn" id="zoomInBtn" title="Zoom In">
+            <i class="fas fa-search-plus"></i>
+          </button>
+          <button class="image-control-btn" id="zoomOutBtn" title="Zoom Out">
+            <i class="fas fa-search-minus"></i>
+          </button>
+          <button class="image-control-btn" id="fullscreenBtn" title="Fullscreen">
+            <i class="fas fa-expand"></i>
+          </button>
+          <button class="image-control-btn" id="galleryBtn" title="Gallery">
+            <i class="fas fa-images"></i>
+          </button>
+        </div>
+        
+        <div class="image-gallery" id="imageGallery">
+          <div class="gallery-item active">
+            <img src="{{ image_path|default('/api/placeholder/800/600') }}" alt="Oil Spill 1">
+          </div>
+          <div class="gallery-item">
+            <img src="/api/placeholder/800/600" alt="Oil Spill 2">
+          </div>
+          <div class="gallery-item">
+            <img src="/api/placeholder/800/600" alt="Oil Spill 3">
+          </div>
+          <div class="gallery-item">
+            <img src="/api/placeholder/800/600" alt="Oil Spill 4">
+          </div>
+          <div class="gallery-item">
+            <img src="/api/placeholder/800/600" alt="Oil Spill 5">
+          </div>
+        </div>
+      </div>
     </div>
+    
     <div class="right-box">
+      
+  <button class="back-home-button" onclick="window.location.href='https://humble-doodle-v6q79vv4q7gv2wvvq-5000.app.github.dev/index'">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </svg>
+    Home
+  </button>
+      <h1 class="app-title">Oil Spill Cleaning Method Predictor</h1>
+      
       <div class="input-form" id="input-form">
         <div class="field">
-          <label for="temperature">Temperature:</label>
+          <label for="temperature">
+            <i class="fas fa-temperature-half"></i> Temperature
+          </label>
           <input type="number" id="temperature" placeholder="Enter temperature in °C" min="-50" max="50" step="0.1" required>
         </div>
+        
         <div class="field">
-          <label for="humidity">Humidity (%):</label>
+          <label for="humidity">
+            <i class="fas fa-droplet"></i> Humidity (%)
+          </label>
           <input type="number" id="humidity" placeholder="Enter humidity percentage" min="0" max="100" step="1" required>
         </div>
+        
         <div class="field">
-          <label for="flow-speed">Flow Speed (m/s):</label>
+          <label for="flow-speed">
+            <i class="fas fa-wind"></i> Flow Speed (m/s)
+          </label>
           <input type="number" id="flow-speed" placeholder="Enter flow speed" min="0" max="50" step="0.1" required>
         </div>
+        
         <div class="field">
-          <label for="flow-direction">Flow Direction:</label>
+          <label for="flow-direction">
+            <i class="fas fa-compass"></i> Flow Direction
+          </label>
           <select id="flow-direction" required>
             <option value="">Select direction</option>
             <option value="North">North</option>
@@ -225,37 +656,157 @@
             <option value="Northwest">Northwest</option>
           </select>
         </div>
-        <button class="submit-button" id="submit-button" onclick="predictCleaningMethod()">Predict Cleaning Method</button>
+        
+        <button class="submit-button" id="submit-button" onclick="predictCleaningMethod()">
+          <i class="fas fa-wand-magic-sparkles"></i> Predict Cleaning Method
+        </button>
       </div>
       
       <div class="loader" id="loader"></div>
+      
       <div class="result-container" id="result-container">
-        <h3>Predicted Cleaning Method</h3>
-        <p id="result-text"></p>
-        <div id="result-details"></div>
-        <button class="back-button" id="back-button" onclick="goBack()">Back to Input Form</button>
+        <h3><i class="fas fa-flask"></i> Predicted Cleaning Method</h3>
+        <div class="result-text" id="result-text"></div>
+        <div class="result-details" id="result-details"></div>
+        <button class="back-button" id="back-button" onclick="goBack()">
+          <i class="fas fa-arrow-left"></i> Back to Input Form
+        </button>
       </div>
     </div>
   </div>
-  <div id="fullscreen" class="fullscreen" style="display: none;">
-    <img src="" alt="Fullscreen Image" onclick="closeFullscreen()">
+  
+  <div class="fullscreen-overlay" id="fullscreenOverlay">
+    <button class="fullscreen-close" onclick="closeFullscreen()">
+      <i class="fas fa-times"></i>
+    </button>
+    
+    <div class="fullscreen-content">
+      <div class="zoom-level" id="zoomLevel">Zoom: 100%</div>
+      <img id="fullscreenImage" class="fullscreen-image" src="" alt="Fullscreen Image">
+      
+      <div class="fullscreen-controls">
+        <button class="fullscreen-control" id="fullscreenZoomOut">
+          <i class="fas fa-search-minus"></i>
+        </button>
+        <button class="fullscreen-control" id="fullscreenReset">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+        <button class="fullscreen-control" id="fullscreenZoomIn">
+          <i class="fas fa-search-plus"></i>
+        </button>
+      </div>
+    </div>
   </div>
   
   <script>
-    // Setup fullscreen image viewer
     document.addEventListener("DOMContentLoaded", () => {
-      const imgML = document.getElementById("imgML");
-      const fullscreenDiv = document.getElementById("fullscreen");
-      const fullscreenImg = fullscreenDiv.querySelector("img");
-
-      imgML.addEventListener("click", () => {
-        fullscreenImg.src = imgML.src;
-        fullscreenDiv.style.display = "flex";
+      // Image controls
+      const mainImage = document.getElementById("mainImage");
+      const fullscreenOverlay = document.getElementById("fullscreenOverlay");
+      const fullscreenImage = document.getElementById("fullscreenImage");
+      const zoomLevel = document.getElementById("zoomLevel");
+      const imageGallery = document.getElementById("imageGallery");
+      const galleryItems = document.querySelectorAll(".gallery-item");
+      
+      // Zoom functionality
+      let currentZoom = 1;
+      const zoomInBtn = document.getElementById("zoomInBtn");
+      const zoomOutBtn = document.getElementById("zoomOutBtn");
+      const fullscreenBtn = document.getElementById("fullscreenBtn");
+      const galleryBtn = document.getElementById("galleryBtn");
+      const fullscreenZoomIn = document.getElementById("fullscreenZoomIn");
+      const fullscreenZoomOut = document.getElementById("fullscreenZoomOut");
+      const fullscreenReset = document.getElementById("fullscreenReset");
+      
+      // Initialize
+      updateZoomLevel();
+      
+      // Image controls event listeners
+      zoomInBtn.addEventListener("click", () => {
+        currentZoom += 0.1;
+        updateZoom();
       });
+      
+      zoomOutBtn.addEventListener("click", () => {
+        if (currentZoom > 0.5) {
+          currentZoom -= 0.1;
+          updateZoom();
+        }
+      });
+      
+      fullscreenBtn.addEventListener("click", openFullscreen);
+      
+      galleryBtn.addEventListener("click", () => {
+        imageGallery.classList.toggle("active");
+      });
+      
+      // Fullscreen controls
+      fullscreenZoomIn.addEventListener("click", () => {
+        currentZoom += 0.1;
+        updateZoom(true);
+      });
+      
+      fullscreenZoomOut.addEventListener("click", () => {
+        if (currentZoom > 0.5) {
+          currentZoom -= 0.1;
+          updateZoom(true);
+        }
+      });
+      
+      fullscreenReset.addEventListener("click", () => {
+        currentZoom = 1;
+        updateZoom(true);
+      });
+      
+      mainImage.addEventListener("click", openFullscreen);
+      
+      // Gallery items
+      galleryItems.forEach(item => {
+        item.addEventListener("click", () => {
+          // Remove active class from all items
+          galleryItems.forEach(i => i.classList.remove("active"));
+          
+          // Add active class to clicked item
+          item.classList.add("active");
+          
+          // Update main image
+          const imgSrc = item.querySelector("img").src;
+          mainImage.src = imgSrc;
+          
+          // Reset zoom
+          currentZoom = 1;
+          updateZoom();
+        });
+      });
+      
+      // Functions
+      function updateZoom(isFullscreen = false) {
+        if (isFullscreen) {
+          fullscreenImage.style.transform = `scale(${currentZoom})`;
+        } else {
+          mainImage.style.transform = `scale(${currentZoom})`;
+        }
+        updateZoomLevel();
+      }
+      
+      function updateZoomLevel() {
+        const percentage = Math.round(currentZoom * 100);
+        zoomLevel.textContent = `Zoom: ${percentage}%`;
+      }
+      
+      function openFullscreen() {
+        fullscreenImage.src = mainImage.src;
+        fullscreenOverlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+        
+        // Apply current zoom level
+        updateZoom(true);
+      }
     });
-
+    
     function closeFullscreen() {
-      document.getElementById("fullscreen").style.display = "none";
+      document.getElementById("fullscreenOverlay").classList.remove("active");
+      document.body.style.overflow = "auto";
     }
     
     function goBack() {
@@ -315,15 +866,13 @@
         // Add parameter summary to result details
         const resultDetails = document.getElementById("result-details");
         resultDetails.innerHTML = `
-          <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.3);">
-            <h4>Input Parameters:</h4>
-            <ul>
-              <li>Temperature: ${temperature}°C</li>
-              <li>Humidity: ${humidity}%</li>
-              <li>Flow Speed: ${flowSpeed} m/s</li>
-              <li>Flow Direction: ${flowDirection}</li>
-            </ul>
-          </div>
+          <h4>Input Parameters:</h4>
+          <ul>
+            <li><i class="fas fa-temperature-half"></i> Temperature: ${temperature}°C</li>
+            <li><i class="fas fa-droplet"></i> Humidity: ${humidity}%</li>
+            <li><i class="fas fa-wind"></i> Flow Speed: ${flowSpeed} m/s</li>
+            <li><i class="fas fa-compass"></i> Flow Direction: ${flowDirection}</li>
+          </ul>
         `;
         
       } catch (error) {

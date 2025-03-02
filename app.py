@@ -42,8 +42,10 @@ def init_db():
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         user_id INTEGER,
                         post_id INTEGER,
+                        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY(user_id) REFERENCES users(id),
-                        FOREIGN KEY(post_id) REFERENCES posts(id))''')
+                        FOREIGN KEY(post_id) REFERENCES posts(id),
+                        UNIQUE(user_id, post_id))''')
         c.execute('''CREATE TABLE IF NOT EXISTS followers (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         follower_id INTEGER,
@@ -313,23 +315,49 @@ def unfollow(user_id):
 def like(post_id):
     if 'user_id' not in session:
         return jsonify(success=False, message="User not logged in"), 401
+    
     user_id = session['user_id']
+    
     with sqlite3.connect(db_file) as conn:
         c = conn.cursor()
-        c.execute("INSERT INTO likes (user_id, post_id) VALUES (?, ?)", (user_id, post_id))
+        
+        # Check if already liked
+        c.execute("SELECT id FROM likes WHERE user_id = ? AND post_id = ?", 
+                 (user_id, post_id))
+        if c.fetchone():
+            return jsonify(success=False, message="Already liked"), 400
+            
+        # Add like
+        c.execute("INSERT INTO likes (user_id, post_id) VALUES (?, ?)", 
+                 (user_id, post_id))
+        
+        # Get updated like count
+        c.execute("SELECT COUNT(*) FROM likes WHERE post_id = ?", (post_id,))
+        like_count = c.fetchone()[0]
+        
         conn.commit()
-    return jsonify(success=True)
+    
+    return jsonify(success=True, like_count=like_count)
 
 @app.route('/unlike/<int:post_id>', methods=['POST'])
 def unlike(post_id):
     if 'user_id' not in session:
         return jsonify(success=False, message="User not logged in"), 401
+    
     user_id = session['user_id']
+    
     with sqlite3.connect(db_file) as conn:
         c = conn.cursor()
-        c.execute("DELETE FROM likes WHERE user_id = ? AND post_id = ?", (user_id, post_id))
+        c.execute("DELETE FROM likes WHERE user_id = ? AND post_id = ?", 
+                 (user_id, post_id))
+        
+        # Get updated like count
+        c.execute("SELECT COUNT(*) FROM likes WHERE post_id = ?", (post_id,))
+        like_count = c.fetchone()[0]
+        
         conn.commit()
-    return jsonify(success=True)
+    
+    return jsonify(success=True, like_count=like_count)
 
 
 @app.route('/create_post', methods=['POST'])
@@ -420,12 +448,37 @@ def get_posts():
     with sqlite3.connect(db_file) as conn:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        c.execute('''SELECT posts.*, users.username, users.avatar 
-                   FROM posts 
-                   JOIN users ON posts.user_id = users.id 
-                   ORDER BY timestamp DESC''')
+        
+        # Get current user ID for checking if post is liked
+        current_user_id = session['user_id']
+        
+        # Query posts with like counts and liked status
+        c.execute('''
+            SELECT 
+                posts.*,
+                users.username,
+                users.avatar,
+                COUNT(DISTINCT likes.id) AS like_count,
+                MAX(CASE WHEN likes.user_id = ? THEN 1 ELSE 0 END) AS is_liked_by_user
+            FROM posts
+            JOIN users ON posts.user_id = users.id
+            LEFT JOIN likes ON posts.id = likes.post_id
+            GROUP BY posts.id
+            ORDER BY timestamp DESC
+        ''', (current_user_id,))
+        
         posts = c.fetchall()
-    return jsonify([dict(post) for post in posts])
+    
+    # Convert to list of dictionaries
+    post_list = []
+    for post in posts:
+        post_dict = dict(post)
+        # Convert SQLite integers to Python bool for frontend
+        post_dict['is_liked_by_user'] = bool(post_dict['is_liked_by_user'])
+        post_list.append(post_dict)
+        
+    return jsonify(post_list)
+
 
 @app.route('/get_users', methods=['GET'])
 def get_users():
@@ -769,6 +822,44 @@ def index_html():
 def logout():
     session.clear()
     return redirect(url_for('auth'))
+
+@app.route('/change_avatar', methods=['POST'])
+def change_avatar():
+    if 'user_id' not in session:
+        return jsonify(success=False, message="User not logged in"), 401
+    
+    if 'avatar' not in request.files:
+        return jsonify(success=False, message="No file part"), 400
+    
+    file = request.files['avatar']
+    
+    if file.filename == '':
+        return jsonify(success=False, message="No file selected"), 400
+    
+    if file and allowed_file(file.filename):
+        user_id = session['user_id']
+        filename = secure_filename(f"user_{user_id}_{file.filename}")
+        
+        # Create upload folder if it doesn't exist
+        if not os.path.exists(app.config['UPLOAD_FOLDER']):
+            os.makedirs(app.config['UPLOAD_FOLDER'])
+        
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        
+        # Update database with the new avatar path
+        try:
+            with sqlite3.connect(db_file) as conn:
+                c = conn.cursor()
+                avatar_url = f"{app.config['UPLOAD_FOLDER']}/{filename}"
+                c.execute("UPDATE users SET avatar = ? WHERE id = ?", (avatar_url, user_id))
+                conn.commit()
+                
+                return jsonify(success=True, avatar_url=avatar_url)
+        except Exception as e:
+            return jsonify(success=False, message=str(e)), 500
+    
+    return jsonify(success=False, message="Invalid file type"), 400
 
 @app.route('/change_password', methods=['POST'])
 def change_password():

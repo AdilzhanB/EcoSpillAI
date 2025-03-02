@@ -585,6 +585,7 @@ body.show-emoji-picker em-emoji-picker {
     a:active {
       transform: scale(0.9);
     }
+
     .profile-section {
       position: fixed;
       top: 10px;
@@ -597,19 +598,45 @@ body.show-emoji-picker em-emoji-picker {
     .profile-avatar {
       width: 50px;
       height: 50px;
+      margin-top: 80px;
+      margin-left: 20px;
       border-radius: 50%;
       cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      object-fit: cover;
+      border: 2px solid #5350C4;
+    }
+
+    .profile-avatar:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(83, 80, 196, 0.5);
+    }
+
+    .profile-avatar2 {
+      width: 50px;
+      height: 50px;
+      margin-left: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      object-fit: cover;
+      border: 2px solid #5350C4;
+    }
+
+    .profile-avatar2:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(83, 80, 196, 0.5);
     }
 
     .profile-info {
-      display: block;
+      display: none;
       background: #fff;
       color: #000;
-      padding: 10px;
+      padding: 15px;
       border-radius: 10px;
       height: auto;
       width: auto;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
       flex-direction: column;
       gap: 10px;
     }
@@ -623,125 +650,91 @@ body.show-emoji-picker em-emoji-picker {
     }
 
     .profile-info button {
-      padding: 5px 10px;
+      padding: 8px 16px;
       background: #5350C4;
       color: #fff;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: all 0.3s ease;
     }
 
     .profile-info button:hover {
       background: #3d39ac;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
     .logout-button {
       position: fixed;
-      bottom: 10px;
       left: 10px;
+      top: 650px;
       padding: 10px 20px;
       background: #ff0000;
       color: #fff;
       border: none;
-      border-radius: 5px;
+      border-radius: 30px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: all 0.3s ease;
       margin-bottom: 290px;
+      font-weight: 600;
     }
+    .logout-button::target-text{
+      align-items: center;
 
+    }
     .logout-button:hover {
-      background: #cc0000;
-    }
-    /* Style for Change Password and Change Profile Picture buttons */
-    .change-password-form button {
-      padding: 10px 20px;
-      margin: 10px 0;
-      background: #5350C4;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s ease, transform 0.3s ease;
+      background: #f47b7b;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
-    .change-password-form button:hover {
-      background: #3d39ac;
-      transform: scale(1.05);
-    }
-
-    .change-password-form button:active {
-      transform: scale(0.95);
-    }
-
-    /* Style for profile avatar image */
-    .profile-avatar {
-      width: 50px;
-      height: 50px;
-      margin-top: 80px;
-      margin-left: 20px;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .profile-avatar:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    }
-    .profile-avatar2 {
-      width: 50px;
-      height: 50px;
-      margin-left: 20px;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .profile-avatar2:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    }
     .change-password-form {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 15px;
+      padding: 10px;
     }
 
     .change-password-form input[type="password"] {
-      padding: 10px;
-      margin-top: 10px;
-      width: 200px;
-      border: 1px solid #ccc;
+      padding: 12px;
+      width: 100%;
+      border: 1px solid #ddd;
       border-radius: 20px;
       font-size: 16px;
-      transition: border-color 0.3s ease;
+      transition: all 0.3s ease;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     .change-password-form input[type="password"]:focus {
       border-color: #5350C4;
+      box-shadow: 0 0 0 2px rgba(83, 80, 196, 0.2);
+      outline: none;
     }
 
     .change-password-form button {
-      padding: 10px 20px;
-      margin-top:auto;
+      padding: 12px 20px;
       background: #5350C4;
-      width: 200px;
+      width: 100%;
       color: #fff;
       border: none;
       border-radius: 20px;
       cursor: pointer;
-      transition: background 0.3s ease, transform 0.3s ease;
+      font-weight: 600;
+      transition: all 0.3s ease;
     }
 
     .change-password-form button:hover {
       background: #3d39ac;
-      transform: scale(1.05);
+      transform: scale(1.03);
+      box-shadow: 0 4px 8px rgba(83, 80, 196, 0.3);
     }
 
     .change-password-form button:active {
-      transform: scale(0.95);
+      transform: scale(0.98);
     }
+
+    /* History tab styling */
     .history-btn {
       position: fixed;
       top: 20px;
@@ -756,16 +749,21 @@ body.show-emoji-picker em-emoji-picker {
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      transition: transform 0.3s ease;
+      box-shadow: 0 4px 12px rgba(83, 80, 196, 0.4);
+      transition: all 0.3s ease;
+      font-size: 20px;
+      z-index: 999;
     }
+
     .history-btn:hover {
-      transform: scale(1.1);
+      transform: scale(1.1) rotate(90deg);
+      background: #3d39ac;
     }
+
     .close-btn {
-      position: fixed;
-      top: 5px;
-      left: 20px;
+      position: absolute;
+      top: 15px;
+      right: 1450px;
       width: 30px;
       height: 30px;
       background: #FF4C4C;
@@ -776,90 +774,166 @@ body.show-emoji-picker em-emoji-picker {
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      transition: transform 0.3s ease;
+      box-shadow: 0 4px 8px rgba(255, 76, 76, 0.4);
+      transition: all 0.3s ease;
+      font-size: 16px;
       z-index: 1001;
     }
+
     .close-btn:hover {
-      transform: scale(1.1);
+      transform: scale(1.1) rotate(90deg);
+      background: #e63e3e;
     }
+
     .history-tab {
       position: fixed;
       top: 0;
-      left: -300px;
-      width: 300px;
+      left: -350px;
+      width: 350px;
       height: 100%;
       background: #fff;
-      box-shadow: 4px 0 8px rgba(0, 0, 0, 0.2);
-      transform: translateX(0);
-      transition: left 0.5s ease;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+      transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       overflow-y: auto;
       z-index: 1000;
+      border-right: 3px solid #5350C4;
     }
+
     .history-tab.open {
       left: 0;
     }
+
     .history-header {
-      padding: 20px;
+      padding: 25px 20px;
       background: #5350C4;
       color: #fff;
       text-align: center;
       font-weight: 600;
-      font-size: 1.2rem;
+      font-size: 1.4rem;
+      position: sticky;
+      top: 0;
+      z-index: 1002;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
+
+    .history-content {
+      padding: 10px;
+    }
+
     .history-item {
       padding: 15px;
-      border-bottom: 1px solid #eee;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      background: #f9f9f9;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
       display: flex;
       flex-direction: column;
       gap: 10px;
+      transition: all 0.3s ease;
     }
-    .history-item img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    .history-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
     }
+
     .history-item input {
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 8px;
-      font-size: 0.9rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
     }
+
+    .history-item input:focus {
+      border-color: #5350C4;
+      box-shadow: 0 0 0 2px rgba(83, 80, 196, 0.2);
+      outline: none;
+    }
+
     .history-item input::placeholder {
       color: #aaa;
+    }
+
+    .delete-btn {
+      background: #FF4C4C;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      margin-top: 5px;
+    }
+
+    .delete-btn:hover {
+      background: #e63e3e;
+      transform: scale(1.03);
+    }
+
+    .add-history-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: #5350C4;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(83, 80, 196, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .add-history-btn:hover {
+      transform: scale(1.1);
+      background: #3d39ac;
+    }
+
+    /* Animation */
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
     }
     </style>
   </head>
   <body>
-    <!-- History Button -->
     <button class="history-btn" onclick="toggleHistoryTab()">
       ☰
     </button>
-    <button class="close-btn" onclick="closeHistoryTab()">
-      ✕
-    </button>
-    <img alt="Profile Avatar" class="profile-avatar" id="profile-avatar">
+    
+    <!-- History Tab -->
     <div class="history-tab" id="historyTab">
       <div class="history-header">Profile History</div>
       <div class="history-content" id="historyContent">
         <div class="profile-container">
-          <img src="{% if user.avatar %}/{{ user.avatar }}{% else %}/static/avatars/default_oil_social.png{% endif %}" class="avatar me-3" alt="User Avatar">
-          <div class="profile-info" id="profile-info">
+          <form action="/logout" method="POST">
+            <button type="submit" class="logout-button">Logout</button>
+          </form>
+          <img src="{% if user.avatar %}/{{ user.avatar }}{% else %}/static/avatars/default_oil_social.png{% endif %}" style="height: 50px; width: 50px; border-radius:50%"class="avatar me-3" alt="User Avatar">
+          <form class="change-password-form" id="changePasswordForm">          
+            <div class="profile-info" id="profile-info" style="display: flex;">
             <p>Email: <span id="profile-email">{{ user[0] }}</span></p>
             <p>Username: <span id="profile-username">{{ user[1] }}</span></p>
-          </div>
-          <form class="change-password-form" id="changePasswordForm">
+            </div>
             <input type="password" id="newPassword" placeholder="New Password" required>
             <button type="button" onclick="changePassword()">Change Password</button>
             <button type="button" onclick="changeProfilePicture()">Change Profile Avatar</button>
           </form>
         </div>
-      
-        <!-- Logout Button -->
-        <form action="/logout" method="POST">
-          <button type="submit" class="logout-button">Logout</button>
-        </form>
+      </div>
+    </div>
+    
+    <button class="close-btn" onclick="closeHistoryTab()">
+      ✕
+    </button>
       </div>
     </div>
   <!-- Chatbot Toggler -->
@@ -1125,64 +1199,76 @@ document.getElementById('profile-avatar').addEventListener('click', () => {
       document.getElementById('profile-info').classList.toggle('visible');
     });
 
-    default_avatar = 'data:image/jpeg;base64,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'
-    document.getElementById('profile-avatar').src = default_avatar;
-    document.getElementById('profile-avatar2').src = default_avatar;
+    // Function to toggle history tab
+    function toggleHistoryTab() {
+      document.getElementById('historyTab').classList.toggle('open');
+    }
+    
+    // Function to close history tab
+    function closeHistoryTab() {
+      document.getElementById('historyTab').classList.remove('open');
+    }
+    
+    function changePassword() {
+  const newPassword = document.getElementById('newPassword').value;
+  if (!newPassword) {
+    alert('Please enter a new password');
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('new_password', newPassword);
+  
+  fetch('/change_password', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert('Password changed successfully!');
+      document.getElementById('newPassword').value = '';
+    } else {
+      alert('Failed to change password: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error changing password:', error);
+    alert('An error occurred while changing the password');
+  });
+}
+    
+    // Function to change profile picture
     function changeProfilePicture() {
-      // Function to change profile picture
       const newPicture = prompt("Enter the URL of the new profile picture:");
       if (newPicture) {
-        document.getElementById('profile-avatar').src = newPicture;
-        document.getElementById('profile-avatar2').src = newPicture;
+        document.getElementById('userAvatar').src = newPicture;
         localStorage.setItem('profilePicture', newPicture);
+        alert("Profile picture updated successfully!");
       }
     }
+    
+    // Load saved profile picture if available
     const savedAvatar = localStorage.getItem('profilePicture');
     if(savedAvatar) {
-      document.getElementById('profile-avatar').src = savedAvatar;
-      document.getElementById('profile-avatar2').src = savedAvatar;
+      document.getElementById('userAvatar').src = savedAvatar;
     }
-
-
-
-    const historyTab = document.getElementById('historyTab');
-    const historyContent = document.getElementById('historyContent');
-
-    function toggleHistoryTab() {
-      historyTab.classList.toggle('open');
+    function logout() {
+  fetch('/logout', {
+    method: 'POST'
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      window.location.href = '/login';
+    } else {
+      alert('Failed to logout: ' + data.message);
     }
-
-    function closeHistoryTab() {
-      historyTab.classList.remove('open');
-    }
-
-    function addHistoryItem(title, description) {
-      const item = document.createElement('div');
-      item.classList.add('history-item');
-
-      const titleInput = document.createElement('input');
-      titleInput.type = 'text';
-      titleInput.placeholder = 'Title';
-      titleInput.value = title;
-      titleInput.readOnly = true;
-
-      const descriptionInput = document.createElement('input');
-      descriptionInput.type = 'text';
-      descriptionInput.placeholder = 'Description';
-      descriptionInput.value = description;
-      descriptionInput.readOnly = true;
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.textContent = 'Delete';
-      deleteBtn.classList.add('delete-btn');
-      deleteBtn.onclick = () => item.remove();
-
-      item.appendChild(titleInput);
-      item.appendChild(descriptionInput);
-      item.appendChild(deleteBtn);
-
-      historyContent.appendChild(item);
-    }
+  })
+  .catch(error => {
+    console.error('Error logging out:', error);
+  });
+}
   </script>
 </body>
 </html>
