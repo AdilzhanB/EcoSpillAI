@@ -602,12 +602,12 @@ def problem():
 def problem_html():
     return redirect(url_for('problem'))
 
-@app.route('/solutions')
-def solutions():
-    return render_template('solutions.html')
-@app.route('/solutions.html')
-def solutions_html():
-    return redirect(url_for('solutions'))
+@app.route('/hardware_map')
+def hardware_map():
+    return render_template('hardware_map.html')
+@app.route('/hardware_map.html')
+def hardware_html():
+    return redirect(url_for('hardware_map'))
 
 @app.route('/gemini')
 def gemini():
