@@ -181,7 +181,7 @@ def edit_profile():
 
 @app.route("/generate_oil_spill_clean_method", methods=["GET"])
 def predict():
-    GEMINI_API_KEY = "AIzaSyBZL6nqdONFKGKC-n-RyB2sEpJZz4HZses"
+    GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
     GEMINI_URL = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key={GEMINI_API_KEY}"
     
     temperature = request.args.get("temperature", type=float)
@@ -216,7 +216,7 @@ def predict():
 
 @app.route("/api/openai-translate", methods=["POST"])
 def translate_text():
-    GEMINI_API_KEY = "AIzaSyBZL6nqdONFKGKC-n-RyB2sEpJZz4HZses"
+    GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
     GEMINI_URL = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key={GEMINI_API_KEY}"
     
     data = request.json
